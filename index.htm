@@ -9,10 +9,10 @@
   <body>
   
 	<div class="bodyDiv">
-	<p>Curious whether a password you use (on this site or any) is in a record of data beaches? Enter it below.</p>
-	<p>For your security, your password is encrypted on transmission. Only the first five characters of the hash of your password get send to <a href="https://haveibeenpwned.com/API/v2#SearchingPwnedPasswordsByRange">haveibeenpwned.com</a></p>
+	<p>Curious whether a password you use is in a record of data beaches? Enter it below.</p>
+	<p>For your security, your password is encrypted on transmission. Only the first five characters of the hash of your password get sent to <a href="https://haveibeenpwned.com/API/v2#SearchingPwnedPasswordsByRange">haveibeenpwned.com</a></p>
 		  <form class="form-inline" onsubmit="javascript:runCheck();return false;" >
-			<input id="input" class="form-control" type="text" placeholder="Password...">
+			<input id="input" style="width: 200px; display: inline-block;" class="form-control" type="text" placeholder="Password...">
 			<button title="Click to send part of hashed password." class="btn btn-success" type="submit">Check</button>
 		  </form> 
 		  <div><p id="output"></p></div>
