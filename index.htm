@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Is My Password Compromised?</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
+  
+	<div class="bodyDiv">
+	<p>Curious whether a password you use (on this site or any) is in a record of data beaches? Enter it below.</p>
+	<p>For your security, your password is encrypted on transmission. Only the first five characters of the hash of your password get send to <a href="https://haveibeenpwned.com/API/v2#SearchingPwnedPasswordsByRange">haveibeenpwned.com</a></p>
+		  <form class="form-inline" onsubmit="javascript:runCheck();return false;" >
+			<input id="input" class="form-control" type="text" placeholder="Password...">
+			<button title="Click to send part of hashed password." class="btn btn-success" type="submit">Check</button>
+		  </form> 
+		  <div><p id="output"></p></div>
+		</div>
+		<script>
+	  let first = "";
+	  let last = "";
+	  let hash = "";
+	  function hexString(buffer) {
+		// creates an array of 8-bit unsigned integers
+		const byteArray = new Uint8Array(buffer);
+		// turns that hash into hex
+		const hexCodes = [...byteArray].map(value => {
+		  // each element in array is converted to base 16 string
+		  const hexCode = value.toString(16);
+		  // pad beggining with 0  why?
+		  const paddedHexCode = hexCode.padStart(2, '0');
+		  // return upper case hex hash
+		  return paddedHexCode.toUpperCase();
+		});
+		// return a string not an array
+		return hexCodes.join('');
+	  }
+
+	  async function digestMessage(message) {
+		// Returns a newly constructed TextEncoder that will generate a byte stream with utf-8 encoding.
+		const encoder = new TextEncoder(); 
+		// Takes a USVString as input, and returns a Uint8Array containing utf-8 encoded text.
+		const data = encoder.encode(message);
+
+		// returns the hash
+		// The digest() method of the SubtleCrypto interface generates a digest of the given data. 
+		// A digest is a short fixed-length value derived from some variable-length input.
+		return window.crypto.subtle.digest('SHA-1', data);
+	  }
+
+	  async function runCheck() {
+		
+		// get references to the dom
+		let output = document.getElementById("output");
+		let input = document.getElementById("input");
+
+		try {
+		  // extract input text from textbox
+		  let text = input.value;
+		  input.value = "";
+
+
+		  if (text === "") {
+			throw "Textbox can't be empty";
+		  }
+
+		  // generate hash buffer
+		  let digestValue = await digestMessage(text);
+
+
+		  // turn buffer into string
+		  hash = hexString(digestValue);
+
+		  // split hash into head and tail
+		  first = hash.substring(0, 5);
+		  last = hash.substring(5);
+		  let response = await fetch('https://api.pwnedpasswords.com/range/' + first);
+
+		  // get response text
+		  let responseText = await response.text();
+
+		  // split the response into an array with potential passwords
+		  let arr = responseText.split("\r\n");  
+		  
+		  // if nothing was found this will be displayed
+		  document.getElementById("output")
+				.innerHTML = "The password : " + text + 
+				"<br>SHA1 Hash : <span id='hash'>" + hash + 
+				"</span><br>Was not found!";
+
+		  arr.forEach((s)=>{
+			
+			// split each line into the found hash and the amount of occurences
+			let a = s.split(":");
+			
+			// a[0] is the found hash
+			if(a[0] === last) {
+			  
+			  // set output text
+			  document.getElementById("output")
+				.innerHTML = "The password : " + text + 
+				"<br>SHA1 Hash : <span id='hash'>" + hash + 
+				"</span><br>Was found <b>" + a[1] + "</b> times!";
+				
+			  return; 
+			}
+			
+		  });
+		} catch (error) {
+
+		  // set error output 
+		  document.getElementById("output").innerHTML =
+			  "<b>" + error + "</b>";
+		}
+		
+		output.value = "";
+	  }
+	</script>
+
+  </body>
+</html>
